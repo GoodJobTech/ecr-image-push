@@ -76,3 +76,7 @@ See the [versioning documentation](https://github.com/actions/toolkit/blob/maste
 ## Usage:
 
 After testing you can [create a v1 tag](https://github.com/actions/toolkit/blob/master/docs/action-versioning.md) to reference the stable and latest V1 action
+
+## License
+
+Source code is licenced under the [MIT License](https://www.mit.edu/~amini/LICENSE.md) also uses the [Github's Actions Template](https://github.com/actions/typescript-action).
