@@ -3,9 +3,8 @@
 
 Push a Docker image to AWS Elastic Container Registry. 
 
-
-## Usage
-
+Usage
+---
 ```yaml
 jobs:
 
