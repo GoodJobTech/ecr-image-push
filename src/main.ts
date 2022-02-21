@@ -2,6 +2,7 @@ import * as core from '@actions/core'
 import { ChildProcess, exec } from 'child_process';
 import { streamToString } from './utils';
 
+const AWS_DEFAULT_OUTPUT = 'json';
 const AWS_ACCESS_KEY_ID: string = core.getInput('aws-access-key-id', {required: true})
 const AWS_SECRET_ACCESS_KEY: string = core.getInput('aws-secret-access-key', {required: true})
 const AWS_DEFAULT_REGION: string = core.getInput('aws-default-region')
@@ -12,7 +13,8 @@ let distributedImages: string[] = [];
 async function run(): Promise<void> {
   try {
     const {stdout, stderr} = await executeCommand(`aws sts get-caller-identity --output json --region ${AWS_DEFAULT_REGION}`);
-    const accountData: AccountData = JSON.parse(await streamToString(stdout));
+    const ad = await streamToString(stdout);
+    const accountData: AccountData = JSON.parse(ad);
     await dockerLogin(accountData);
 
 
@@ -51,6 +53,7 @@ async function executeCommand(cmd: string): Promise<ChildProcess> {
     AWS_ACCESS_KEY_ID,
     AWS_SECRET_ACCESS_KEY,
     AWS_DEFAULT_REGION,
+    AWS_DEFAULT_OUTPUT,
   }})
 }
 

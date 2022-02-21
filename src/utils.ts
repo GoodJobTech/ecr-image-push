@@ -1,6 +1,6 @@
 import internal from "stream";
 
-export async function streamToString(stream: internal.Readable|null): Promise<string> {
+export async function streamToString(stream: internal.Readable | null): Promise<string> {
     if (!stream) {
         return '';
     }
