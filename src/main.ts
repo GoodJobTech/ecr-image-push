@@ -1,6 +1,6 @@
 import * as core from '@actions/core'
-import { ChildProcess, exec } from 'child_process';
-import { streamToString } from './utils';
+import { exec } from 'child_process';
+
 
 const AWS_DEFAULT_OUTPUT = 'json';
 const AWS_PAGER = '';
@@ -13,10 +13,10 @@ let distributedImages: string[] = [];
 
 async function run(): Promise<void> {
   try {
-    const {stdout, stderr} = await executeCommand(`aws sts get-caller-identity --output json --no-cli-pager --region ${AWS_DEFAULT_REGION}`);
-    const ad = await streamToString(stdout);
-    core.debug(`Account data: ${ad}`);
-    const accountData: AccountData = JSON.parse(ad);
+    const {stdout, stderr} = await execute(`aws sts get-caller-identity --output json --no-cli-pager --region ${AWS_DEFAULT_REGION}`);
+    core.debug(`Account data: ${stdout}`);
+    core.debug(`Stderr: ${stderr}`);
+    const accountData: AccountData = JSON.parse(stdout);
     await dockerLogin(accountData);
 
 
@@ -31,6 +31,33 @@ async function run(): Promise<void> {
   }
 }
 
+interface CommandOutput {
+  stdout: string;
+  stderr: string;
+}
+
+export async function execute(command: string): Promise<CommandOutput> {
+  return new Promise<CommandOutput>((resolve, reject) => {
+    exec(command, {
+    shell: '/bin/bash',
+    encoding: 'utf-8',
+    env: {
+    ...process.env,
+    AWS_ACCESS_KEY_ID,
+    AWS_SECRET_ACCESS_KEY,
+    AWS_DEFAULT_REGION,
+    AWS_DEFAULT_OUTPUT,
+    AWS_PAGER,
+  }},
+         (error: Error|null, stdout: string, stderr: string) => {
+           if (error) {
+             reject(error);
+           } else {
+             resolve({stdout, stderr});
+           }
+         });
+  });
+}
 
 interface AccountData {
   UserId: string;
@@ -43,30 +70,17 @@ async function dockerPush(image: string, tag: string, accountData: AccountData):
   const repository: string = `${accountData.Account}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com`; 
   const uri: string = `${repository}/${image}:${tag}`;
   core.debug(`Pushing image ${image} as ${uri}`);
-  await executeCommand(`docker tag ${image} ${uri}`);
-  await executeCommand(`docker push ${uri}`);
+  await execute(`docker tag ${image} ${uri}`);
+  await execute(`docker push ${uri}`);
   distributedImages.push(uri);
 }
 
-export async function executeCommand(cmd: string): Promise<ChildProcess> {
-  return exec(cmd, {
-    shell: 'bin/bash',
-    encoding: 'utf-8',
-    env: {
-    ...process.env,
-    AWS_ACCESS_KEY_ID,
-    AWS_SECRET_ACCESS_KEY,
-    AWS_DEFAULT_REGION,
-    AWS_DEFAULT_OUTPUT,
-    AWS_PAGER,
-  }})
-}
 
 async function dockerLogin(accountData: AccountData): Promise<void> {
   // The logic here described in AWS ECR documentation: 
   // https://docs.aws.amazon.com/AmazonECR/latest/userguide/getting-started-cli.html#cli-authenticate-registry
   const loginCommand = `aws ecr get-login-password --region ${AWS_DEFAULT_REGION} | docker login --username AWS --password-stdin ${accountData.Account}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com`
-  await executeCommand(loginCommand);
+  await execute(loginCommand);
 }
 
 
