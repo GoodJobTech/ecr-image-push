@@ -35,10 +35,9 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.executeCommand = void 0;
+exports.execute = void 0;
 const core = __importStar(__nccwpck_require__(186));
 const child_process_1 = __nccwpck_require__(129);
-const utils_1 = __nccwpck_require__(918);
 const AWS_DEFAULT_OUTPUT = 'json';
 const AWS_PAGER = '';
 const AWS_ACCESS_KEY_ID = core.getInput('aws-access-key-id', { required: true });
@@ -50,10 +49,10 @@ let distributedImages = [];
 function run() {
     return __awaiter(this, void 0, void 0, function* () {
         try {
-            const { stdout, stderr } = yield executeCommand(`aws sts get-caller-identity --output json --no-cli-pager --region ${AWS_DEFAULT_REGION}`);
-            const ad = yield (0, utils_1.streamToString)(stdout);
-            core.debug(`Account data: ${ad}`);
-            const accountData = JSON.parse(ad);
+            const { stdout, stderr } = yield execute(`aws sts get-caller-identity --output json --no-cli-pager --region ${AWS_DEFAULT_REGION}`);
+            core.debug(`Account data: ${stdout}`);
+            core.debug(`Stderr: ${stderr}`);
+            const accountData = JSON.parse(stdout);
             yield dockerLogin(accountData);
             for (const tag of tags) {
                 yield dockerPush(image, tag, accountData);
@@ -66,93 +65,50 @@ function run() {
         }
     });
 }
+function execute(command) {
+    return __awaiter(this, void 0, void 0, function* () {
+        return new Promise((resolve, reject) => {
+            (0, child_process_1.exec)(command, {
+                shell: '/bin/bash',
+                encoding: 'utf-8',
+                env: Object.assign(Object.assign({}, process.env), { AWS_ACCESS_KEY_ID,
+                    AWS_SECRET_ACCESS_KEY,
+                    AWS_DEFAULT_REGION,
+                    AWS_DEFAULT_OUTPUT,
+                    AWS_PAGER })
+            }, (error, stdout, stderr) => {
+                if (error) {
+                    reject(error);
+                }
+                else {
+                    resolve({ stdout, stderr });
+                }
+            });
+        });
+    });
+}
+exports.execute = execute;
 // dockerPush pushes the image to the ECR registry.
 function dockerPush(image, tag, accountData) {
     return __awaiter(this, void 0, void 0, function* () {
         const repository = `${accountData.Account}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com`;
         const uri = `${repository}/${image}:${tag}`;
         core.debug(`Pushing image ${image} as ${uri}`);
-        yield executeCommand(`docker tag ${image} ${uri}`);
-        yield executeCommand(`docker push ${uri}`);
+        yield execute(`docker tag ${image} ${uri}`);
+        yield execute(`docker push ${uri}`);
         distributedImages.push(uri);
     });
 }
-function executeCommand(cmd) {
-    return __awaiter(this, void 0, void 0, function* () {
-        return (0, child_process_1.exec)(cmd, {
-            shell: 'bin/bash',
-            encoding: 'utf-8',
-            env: Object.assign(Object.assign({}, process.env), { AWS_ACCESS_KEY_ID,
-                AWS_SECRET_ACCESS_KEY,
-                AWS_DEFAULT_REGION,
-                AWS_DEFAULT_OUTPUT,
-                AWS_PAGER })
-        });
-    });
-}
-exports.executeCommand = executeCommand;
 function dockerLogin(accountData) {
     return __awaiter(this, void 0, void 0, function* () {
         // The logic here described in AWS ECR documentation: 
         // https://docs.aws.amazon.com/AmazonECR/latest/userguide/getting-started-cli.html#cli-authenticate-registry
         const loginCommand = `aws ecr get-login-password --region ${AWS_DEFAULT_REGION} | docker login --username AWS --password-stdin ${accountData.Account}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com`;
-        yield executeCommand(loginCommand);
+        yield execute(loginCommand);
     });
 }
 run();
 core.setOutput('images', distributedImages);
-
-
-/***/ }),
-
-/***/ 918:
-/***/ (function(__unused_webpack_module, exports) {
-
-"use strict";
-
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
-var __asyncValues = (this && this.__asyncValues) || function (o) {
-    if (!Symbol.asyncIterator) throw new TypeError("Symbol.asyncIterator is not defined.");
-    var m = o[Symbol.asyncIterator], i;
-    return m ? m.call(o) : (o = typeof __values === "function" ? __values(o) : o[Symbol.iterator](), i = {}, verb("next"), verb("throw"), verb("return"), i[Symbol.asyncIterator] = function () { return this; }, i);
-    function verb(n) { i[n] = o[n] && function (v) { return new Promise(function (resolve, reject) { v = o[n](v), settle(resolve, reject, v.done, v.value); }); }; }
-    function settle(resolve, reject, d, v) { Promise.resolve(v).then(function(v) { resolve({ value: v, done: d }); }, reject); }
-};
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.streamToString = void 0;
-function streamToString(stream) {
-    var stream_1, stream_1_1;
-    var e_1, _a;
-    return __awaiter(this, void 0, void 0, function* () {
-        if (!stream) {
-            return '';
-        }
-        const chunks = [];
-        try {
-            for (stream_1 = __asyncValues(stream); stream_1_1 = yield stream_1.next(), !stream_1_1.done;) {
-                const chunk = stream_1_1.value;
-                chunks.push(Buffer.from(chunk));
-            }
-        }
-        catch (e_1_1) { e_1 = { error: e_1_1 }; }
-        finally {
-            try {
-                if (stream_1_1 && !stream_1_1.done && (_a = stream_1.return)) yield _a.call(stream_1);
-            }
-            finally { if (e_1) throw e_1.error; }
-        }
-        return Buffer.concat(chunks).toString("utf-8");
-    });
-}
-exports.streamToString = streamToString;
 
 
 /***/ }),
