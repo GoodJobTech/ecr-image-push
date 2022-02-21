@@ -3,9 +3,8 @@
 
 Push a Docker image to AWS Elastic Container Registry. 
 
-
-## Usage
-
+Usage
+---
 ```yaml
 jobs:
 
@@ -29,7 +28,7 @@ Following inputs can be used:
 | Name             | Type    | Default/Required      | Description                                                      |
 |------------------|---------|--------------|------------------------------------------------------------------|
 | `aws-access-key-id`   | String  | **Required** | Specifies an AWS access key associated with an IAM user or role. |
-| `aws-secret-access-key`        | String  | **Required**     | GoReleaser version                                               |
+| `aws-secret-access-key`        | String  | **Required**     | Specifies the secret key associated with the access key. This is essentially the "password" for the access key.                                         |
 | `aws-default-region`           | String  |  `us-east-1`            | Specifies the AWS Region to send the request to    |
 | `image`        | String  | **Required**          | The name of the image. (Should not include repository, must be matching with the image created locally.)                        |
 | `tags`   | String    | `latest`      | Tags the be added when pushing the image to ECR. (Comma seperated string)                                          |
