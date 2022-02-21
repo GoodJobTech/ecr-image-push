@@ -14,6 +14,7 @@ async function run(): Promise<void> {
   try {
     const {stdout, stderr} = await executeCommand(`aws sts get-caller-identity --output json --region ${AWS_DEFAULT_REGION}`);
     const ad = await streamToString(stdout);
+    core.debug(`Account data: ${ad}`);
     const accountData: AccountData = JSON.parse(ad);
     await dockerLogin(accountData);
 
@@ -23,7 +24,9 @@ async function run(): Promise<void> {
     }
 
   } catch (error) {
-    if (error instanceof Error) core.setFailed(error.message)
+    if (error instanceof Error) {
+      core.setFailed(error.message)
+    }   
   }
 }
 
@@ -45,7 +48,7 @@ async function dockerPush(image: string, tag: string, accountData: AccountData):
 }
 
 async function executeCommand(cmd: string): Promise<ChildProcess> {
-  return exec(cmd, {
+  return  exec(cmd, {
     shell: 'bin/bash',
     encoding: 'utf-8',
     env: {

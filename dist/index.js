@@ -50,6 +50,7 @@ function run() {
         try {
             const { stdout, stderr } = yield executeCommand(`aws sts get-caller-identity --output json --region ${AWS_DEFAULT_REGION}`);
             const ad = yield (0, utils_1.streamToString)(stdout);
+            core.debug(`Account data: ${ad}`);
             const accountData = JSON.parse(ad);
             yield dockerLogin(accountData);
             for (const tag of tags) {
@@ -57,8 +58,9 @@ function run() {
             }
         }
         catch (error) {
-            if (error instanceof Error)
+            if (error instanceof Error) {
                 core.setFailed(error.message);
+            }
         }
     });
 }
