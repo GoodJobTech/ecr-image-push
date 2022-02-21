@@ -38,6 +38,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 const core = __importStar(__nccwpck_require__(186));
 const child_process_1 = __nccwpck_require__(129);
 const utils_1 = __nccwpck_require__(918);
+const AWS_DEFAULT_OUTPUT = 'json';
 const AWS_ACCESS_KEY_ID = core.getInput('aws-access-key-id', { required: true });
 const AWS_SECRET_ACCESS_KEY = core.getInput('aws-secret-access-key', { required: true });
 const AWS_DEFAULT_REGION = core.getInput('aws-default-region');
@@ -48,7 +49,8 @@ function run() {
     return __awaiter(this, void 0, void 0, function* () {
         try {
             const { stdout, stderr } = yield executeCommand(`aws sts get-caller-identity --output json --region ${AWS_DEFAULT_REGION}`);
-            const accountData = JSON.parse(yield (0, utils_1.streamToString)(stdout));
+            const ad = yield (0, utils_1.streamToString)(stdout);
+            const accountData = JSON.parse(ad);
             yield dockerLogin(accountData);
             for (const tag of tags) {
                 yield dockerPush(image, tag, accountData);
@@ -78,7 +80,8 @@ function executeCommand(cmd) {
             encoding: 'utf-8',
             env: Object.assign(Object.assign({}, process.env), { AWS_ACCESS_KEY_ID,
                 AWS_SECRET_ACCESS_KEY,
-                AWS_DEFAULT_REGION })
+                AWS_DEFAULT_REGION,
+                AWS_DEFAULT_OUTPUT })
         });
     });
 }
