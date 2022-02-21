@@ -3,6 +3,7 @@ import { ChildProcess, exec } from 'child_process';
 import { streamToString } from './utils';
 
 const AWS_DEFAULT_OUTPUT = 'json';
+const AWS_PAGER = '';
 const AWS_ACCESS_KEY_ID: string = core.getInput('aws-access-key-id', {required: true})
 const AWS_SECRET_ACCESS_KEY: string = core.getInput('aws-secret-access-key', {required: true})
 const AWS_DEFAULT_REGION: string = core.getInput('aws-default-region')
@@ -48,7 +49,7 @@ async function dockerPush(image: string, tag: string, accountData: AccountData):
 }
 
 async function executeCommand(cmd: string): Promise<ChildProcess> {
-  return  exec(cmd, {
+  return exec(cmd, {
     shell: 'bin/bash',
     encoding: 'utf-8',
     env: {
@@ -57,6 +58,7 @@ async function executeCommand(cmd: string): Promise<ChildProcess> {
     AWS_SECRET_ACCESS_KEY,
     AWS_DEFAULT_REGION,
     AWS_DEFAULT_OUTPUT,
+    AWS_PAGER,
   }})
 }
 

@@ -39,6 +39,7 @@ const core = __importStar(__nccwpck_require__(186));
 const child_process_1 = __nccwpck_require__(129);
 const utils_1 = __nccwpck_require__(918);
 const AWS_DEFAULT_OUTPUT = 'json';
+const AWS_PAGER = '';
 const AWS_ACCESS_KEY_ID = core.getInput('aws-access-key-id', { required: true });
 const AWS_SECRET_ACCESS_KEY = core.getInput('aws-secret-access-key', { required: true });
 const AWS_DEFAULT_REGION = core.getInput('aws-default-region');
@@ -83,7 +84,8 @@ function executeCommand(cmd) {
             env: Object.assign(Object.assign({}, process.env), { AWS_ACCESS_KEY_ID,
                 AWS_SECRET_ACCESS_KEY,
                 AWS_DEFAULT_REGION,
-                AWS_DEFAULT_OUTPUT })
+                AWS_DEFAULT_OUTPUT,
+                AWS_PAGER })
         });
     });
 }
