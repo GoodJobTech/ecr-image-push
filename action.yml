@@ -1,0 +1,23 @@
+name: ECR image push.
+description: Push/Distribute your docker images to AWS ECR.
+author: Good Job Tech
+inputs:
+  aws-access-key-id:
+    required: true
+    description: Specifies an AWS access key associated with an IAM user or role.
+  aws-secret-access-key:
+    required: true
+    description: Specifies the secret key associated with the access key. This is essentially the "password" for the access key.
+  aws-default-region:
+    description: Specifies the AWS Region to send the request to.
+    required: false
+    default: us-east-1
+  image:
+    required: true
+    description: The name of the image.
+  tags:
+    description: Tags the be added when pushing the image to ECR.
+    required: false
+runs:
+  using: "node12"
+  main: "dist/index.js"
