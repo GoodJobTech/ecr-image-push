@@ -13,7 +13,7 @@ let distributedImages: string[] = [];
 
 async function run(): Promise<void> {
   try {
-    const {stdout, stderr} = await executeCommand(`aws sts get-caller-identity --output json --region ${AWS_DEFAULT_REGION}`);
+    const {stdout, stderr} = await executeCommand(`aws sts get-caller-identity --output json --no-cli-pager --region ${AWS_DEFAULT_REGION}`);
     const ad = await streamToString(stdout);
     core.debug(`Account data: ${ad}`);
     const accountData: AccountData = JSON.parse(ad);
@@ -48,7 +48,7 @@ async function dockerPush(image: string, tag: string, accountData: AccountData):
   distributedImages.push(uri);
 }
 
-async function executeCommand(cmd: string): Promise<ChildProcess> {
+export async function executeCommand(cmd: string): Promise<ChildProcess> {
   return exec(cmd, {
     shell: 'bin/bash',
     encoding: 'utf-8',

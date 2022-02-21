@@ -35,6 +35,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.executeCommand = void 0;
 const core = __importStar(__nccwpck_require__(186));
 const child_process_1 = __nccwpck_require__(129);
 const utils_1 = __nccwpck_require__(918);
@@ -49,7 +50,7 @@ let distributedImages = [];
 function run() {
     return __awaiter(this, void 0, void 0, function* () {
         try {
-            const { stdout, stderr } = yield executeCommand(`aws sts get-caller-identity --output json --region ${AWS_DEFAULT_REGION}`);
+            const { stdout, stderr } = yield executeCommand(`aws sts get-caller-identity --output json --no-cli-pager --region ${AWS_DEFAULT_REGION}`);
             const ad = yield (0, utils_1.streamToString)(stdout);
             core.debug(`Account data: ${ad}`);
             const accountData = JSON.parse(ad);
@@ -89,6 +90,7 @@ function executeCommand(cmd) {
         });
     });
 }
+exports.executeCommand = executeCommand;
 function dockerLogin(accountData) {
     return __awaiter(this, void 0, void 0, function* () {
         // The logic here described in AWS ECR documentation: 
