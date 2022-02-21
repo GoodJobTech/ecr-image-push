@@ -1,23 +1,35 @@
-## Push Images to ECR 
-
+## Push Docker images to ECR 
 
 Push a Docker image to AWS Elastic Container Registry. 
 
 Usage
 ---
 ```yaml
-jobs:
+on:
+  push:
+    branches:
+      - master
 
+jobs:
   distribute-image:
+    runs-on: ubuntu-latest
     steps:
-      - run: docker build --tag example .
+      # 1. Checkout
+      - name: Build Image
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      # 2. Build the image
+      - run: docker build -t example .
+
+      # 3. Distribute the image
       - name: Push a Docker image to ECR
-        uses: GoodJobTech/ecr-image-push@v0.1.0
+        uses: GoodJobTech/ecr-image-push@v1.0.0
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-default-region: ${{ secrets.AWS_DEFAULT_REGION }} # Optional
-          image: example                                        # Must match with the tag, given in the docker build in 'run'.
+          image: example
           tags: latest, ${{ github.sha }}, some-other-tag
 ```
 
